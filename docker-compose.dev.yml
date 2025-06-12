@@ -1,0 +1,11 @@
+
+services:
+  example-app-react:
+    container_name: app-reactjs
+    image: app-reactjs:latest
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "80:80"
+    restart: unless-stopped

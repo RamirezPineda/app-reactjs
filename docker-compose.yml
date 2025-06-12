@@ -1,0 +1,7 @@
+services:
+  app-react:
+    container_name: app-react
+    image: ramirezpineda/app-reactjs:latest
+    ports:
+      - "80:80"
+    restart: unless-stopped
