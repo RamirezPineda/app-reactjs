@@ -1,0 +1,13 @@
+*
+!/package.json
+!/package-lock.json
+!/yarn.lock
+!/pnpm-lock.yaml
+!/tsconfig.app.json
+!/tsconfig.json
+!/tsconfig.node.json
+!/public
+!/src
+!/index.html
+!/nginx.conf
+!/vite.config.ts
