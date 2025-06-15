@@ -161,9 +161,10 @@ jobs:
         working-directory: terraform/
 
       - name: Terraform Apply
-        run: terraform apply -auto-approve \
-          -var="do_token=${{ secrets.DO_TOKEN }}" \
-          -var="ssh_fingerprint=${{ secrets.SSH_FINGERPRINT }}"
+        run: |
+          terraform apply -auto-approve \
+            -var="do_token=${{ secrets.DO_TOKEN }}" \
+            -var="ssh_fingerprint=${{ secrets.SSH_FINGERPRINT }}"
         working-directory: terraform/
 
       - name: Capture Droplet IP
