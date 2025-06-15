@@ -100,7 +100,7 @@ jobs:
         run: pnpm run build
 
       - name: Verify Build folder
-        run: ls -la build/
+        run: ls -la dist/
 
   docker:
     name: Build and push Docker image
