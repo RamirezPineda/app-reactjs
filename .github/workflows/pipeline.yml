@@ -199,5 +199,5 @@ jobs:
 
       - name: Run Ansible Playbook
         run: |
-          ansible-playbook -i inventory.ini playbook.yml \
+          ansible-playbook -i inventory.ini ansible/playbook.yml \
           --extra-vars "image_name=${{ secrets.DOCKERHUB_USERNAME }}/app-reactjs:latest"
