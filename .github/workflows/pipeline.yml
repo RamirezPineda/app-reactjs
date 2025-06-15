@@ -63,10 +63,19 @@ jobs:
       - name: Run tests
         run: pnpm test
 
+      - name: Run coverage
+        run: pnpm test:coverage
+
+      - name: Upload coverage artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-report
+          path: coverage/
+
   build:
     name: Build
     runs-on: ubuntu-22.04
-    needs: ['lint', 'tests']
+    needs: ["lint", "tests"]
 
     steps:
       - name: Checkout code
@@ -90,9 +99,13 @@ jobs:
       - name: Build production bundle
         run: pnpm run build
 
+      - name: Verify Build folder
+        run: ls -la build/
+
   docker:
+    name: Build and push Docker image
     runs-on: ubuntu-latest
-    needs: 'build'
+    needs: "build"
 
     steps:
       - name: Checkout code
@@ -116,3 +129,73 @@ jobs:
           tags: |
             ${{ secrets.DOCKERHUB_USERNAME }}/app-reactjs:latest
             ${{ secrets.DOCKERHUB_USERNAME }}/app-reactjs:${{ github.sha }}
+
+      - name: Verify published images
+        run: |
+          docker pull ${{ secrets.DOCKERHUB_USERNAME }}/app-reactjs:latest
+          docker images | grep app-reactjs
+
+  terraform:
+    name: Provision DigitalOcean Droplet
+    runs-on: ubuntu-latest
+    needs: docker
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: "1.1.7"
+
+      - name: Terraform Format Check
+        run: terraform fmt -check
+        working-directory: terraform/
+
+      - name: Terraform Validate
+        run: terraform validate
+        working-directory: terraform/
+
+      - name: Terraform Init
+        run: terraform init
+        working-directory: terraform/
+
+      - name: Terraform Apply
+        run: terraform apply -auto-approve \
+          -var="do_token=${{ secrets.DO_TOKEN }}" \
+          -var="ssh_fingerprint=${{ secrets.SSH_FINGERPRINT }}"
+        working-directory: terraform/
+
+      - name: Capture Droplet IP
+        id: tf
+        run: |
+          echo "ip_address=$(terraform output -raw ip_address)" >> $GITHUB_OUTPUT
+        working-directory: terraform/
+
+  deploy:
+    name: Deploy with Ansible
+    runs-on: ubuntu-latest
+    needs: terraform
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Ansible & community.docker
+        run: |
+          sudo apt update
+          sudo apt install -y python3-pip ssh
+          pip3 install ansible community.docker
+
+      - name: Start ssh-agent and add key
+        uses: webfactory/ssh-agent@v0.9.0
+        with:
+          ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
+
+      - name: Create inventory file
+        run: |
+          echo "${{ needs.terraform.outputs.ip_address }} ansible_user=root ansible_ssh_common_args='-o StrictHostKeyChecking=no'" > inventory.ini
+
+      - name: Run Ansible Playbook
+        run: |
+          ansible-playbook -i inventory.ini playbook.yml \
+          --extra-vars "image_name=${{ secrets.DOCKERHUB_USERNAME }}/app-reactjs:latest"
