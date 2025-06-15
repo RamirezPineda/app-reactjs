@@ -185,7 +185,8 @@ jobs:
         run: |
           sudo apt update
           sudo apt install -y python3-pip ssh
-          pip3 install ansible community.docker
+          pip3 install ansible
+          ansible-galaxy collection install community.docker
 
       - name: Start ssh-agent and add key
         uses: webfactory/ssh-agent@v0.9.0
