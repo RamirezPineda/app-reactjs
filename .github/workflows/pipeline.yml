@@ -140,6 +140,9 @@ jobs:
     runs-on: ubuntu-latest
     needs: docker
 
+    outputs:
+      ip_address: ${{ steps.tf.outputs.ip_address }}
+
     steps:
       - uses: actions/checkout@v4
 
@@ -195,9 +198,7 @@ jobs:
 
       - name: Create inventory file
         run: |
-          IP="${{ needs.terraform.outputs.ip_address }}"
-          echo "$IP ansible_user=root ansible_ssh_common_args='-o StrictHostKeyChecking=no'" > ansible/inventory.ini
-          cat ansible/inventory.ini
+          echo "${{ needs.terraform.outputs.ip_address }} ansible_user=root ansible_ssh_common_args='-o StrictHostKeyChecking=no'" > ansible/inventory.ini
 
       - name: Run Ansible Playbook
         run: |
