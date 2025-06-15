@@ -195,7 +195,8 @@ jobs:
 
       - name: Create inventory file
         run: |
-          echo "${{ needs.terraform.outputs.ip_address }} ansible_user=root ansible_ssh_common_args='-o StrictHostKeyChecking=no'" > ansible/inventory.ini
+          IP="${{ needs.terraform.outputs.ip_address }}"
+          echo "$IP ansible_user=root ansible_ssh_common_args='-o StrictHostKeyChecking=no'" > ansible/inventory.ini
           cat ansible/inventory.ini
 
       - name: Run Ansible Playbook
