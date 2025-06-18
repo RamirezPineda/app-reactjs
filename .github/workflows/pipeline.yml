@@ -103,7 +103,7 @@ jobs:
         run: ls -la dist/
 
   docker:
-    name: Build and push Docker image
+    name: Docker Build & Push
     runs-on: ubuntu-latest
     needs: "build"
 
@@ -136,7 +136,7 @@ jobs:
           docker images | grep app-reactjs
 
   terraform:
-    name: Provision DigitalOcean Droplet
+    name: Terraform Provider
     runs-on: ubuntu-latest
     needs: docker
 
@@ -176,8 +176,8 @@ jobs:
           echo "ip_address=$(terraform output -raw ip_address)" >> $GITHUB_OUTPUT
         working-directory: terraform/
 
-  deploy:
-    name: Deploy with Ansible
+  ansible:
+    name: Ansible Deploy
     runs-on: ubuntu-latest
     needs: terraform
 
